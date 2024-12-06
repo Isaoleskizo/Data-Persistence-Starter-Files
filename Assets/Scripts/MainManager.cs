@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,10 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
+    public Text player;
+    public int highscore;
+    public string highscoreName;
+    public Text highScoreText;
     public Text ScoreText;
     public GameObject GameOverText;
     
@@ -18,10 +23,16 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
+
     // Start is called before the first frame update
     void Start()
     {
+        highscoreName = WorldManager.Instance.highscoreName;
+        highscore = WorldManager.Instance.highscore;
+        player.text = WorldManager.Instance.playerName;
+        ChangeHighScoreText(highscore, highscoreName);
+
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -45,13 +56,14 @@ public class MainManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 m_Started = true;
-                float randomDirection = Random.Range(-1.0f, 1.0f);
+                float randomDirection = UnityEngine.Random.Range(-1.0f, 1.0f);
                 Vector3 forceDir = new Vector3(randomDirection, 1, 0);
                 forceDir.Normalize();
 
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
+
         }
         else if (m_GameOver)
         {
@@ -66,11 +78,26 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        if (m_Points > highscore)
+        {
+            highscore = m_Points;
+            highscoreName = player.text;
+            ChangeHighScoreText(highscore, highscoreName);
+        }
     }
 
     public void GameOver()
     {
+        WorldManager.Instance.highscore = highscore;
+        WorldManager.Instance.highscoreName = highscoreName;
+
+        WorldManager.Instance.SaveData();
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    public void ChangeHighScoreText(int score, string name)
+    {
+        highScoreText.text = "Best Score : " + name + " : " + score;
     }
 }
